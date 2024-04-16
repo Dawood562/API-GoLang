@@ -1,26 +1,29 @@
 package main
 
 import (
-	"net/http"
 	"github.com/gin-gonic/gin"
 )
 
-
 /* Determine Data Structure */
 type xyz struct {
-	id string `json:"id"`;
-	title string `json:"title"`;
-	description string `json:"description"`;
-	number int `json:"number"`;
-	someBoolean boolean `json:"someBoolean"`;
+	Id          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Number      int    `json:"number"`
+	SomeBoolean bool   `json:"someBoolean"`
 }
 
 var items = []xyz{
-	{id: "Unique Identifier #1", title: "Title 1", description: "Here is some more information about title.", number: 1, someBoolean: true},
-	{id: "mov_inception", title: "Inception", description: "This film is about drugs and draeming.", number: 56, someBoolean: false},
-	{id: "tv_rickandmorty", title: "Rick & Morty", description: "I turned myself into a pickle, Morty! I'm Pickle Riiiiiiick!", number: 6786789, someBoolean: false},
-	{id: "docu_totaltrust", title: "Total Trust", description: "A documentary about surveillance and censorship in China.", number: 562, someBoolean: true},
-	{id: "soft_vscode", title: "Visual Studio Code", description: "IDE.", number: 3589, someBoolean: false},
-	{id: "web_google", title: "Google", description: "A well-known search engine.", number: 99, someBoolean: true}
+	{Id: "Unique Identifier #1", Title: "Title 1", Description: "Here is some more information about title.", Number: 1, SomeBoolean: true},
+	{Id: "mov_inception", Title: "Inception", Description: "This film is about drugs and draeming.", Number: 56, SomeBoolean: false},
+	{Id: "tv_rickandmorty", Title: "Rick & Morty", Description: "I turned myself into a pickle, Morty! I'm Pickle Riiiiiiick!", Number: 6786789, SomeBoolean: false},
+	{Id: "docu_totaltrust", Title: "Total Trust", Description: "A documentary about surveillance and censorship in China.", Number: 562, SomeBoolean: true},
+	{Id: "soft_vscode", Title: "Visual Studio Code", Description: "IDE.", Number: 3589, SomeBoolean: false},
+	{Id: "web_google", Title: "Google", Description: "A well-known search engine.", Number: 99, SomeBoolean: true},
 }
 
+func main() {
+	// Run a server
+	router := gin.Default()
+	router.Run("localhost:9000")
+}
