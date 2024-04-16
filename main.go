@@ -1,13 +1,12 @@
 package main
 
 /* Determine Data Structure */
-
 type xyz struct {
-	id string;
-	title string;
-	description string;
-	number int;
-	someBoolean boolean;
+	id string `json:"id"`;
+	title string `json:"title"`;
+	description string `json:"description"`;
+	number int `json:"number"`;
+	someBoolean boolean `json:"someBoolean"`;
 }
 
 var items = []xyz{
@@ -18,3 +17,4 @@ var items = []xyz{
 	{id: "soft_vscode", title: "Visual Studio Code", description: "IDE.", number: 3589, someBoolean: false},
 	{id: "web_google", title: "Google", description: "A well-known search engine.", number: 99, someBoolean: true}
 }
+
