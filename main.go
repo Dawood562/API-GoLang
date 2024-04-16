@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,6 +15,7 @@ type xyz struct {
 	SomeBoolean bool   `json:"someBoolean"`
 }
 
+// Init variables
 var items = []xyz{
 	{Id: "Unique Identifier #1", Title: "Title 1", Description: "Here is some more information about title.", Number: 1, SomeBoolean: true},
 	{Id: "mov_inception", Title: "Inception", Description: "This film is about drugs and draeming.", Number: 56, SomeBoolean: false},
@@ -22,8 +25,17 @@ var items = []xyz{
 	{Id: "web_google", Title: "Google", Description: "A well-known search engine.", Number: 99, SomeBoolean: true},
 }
 
+func getItems(context *gin.Context) {
+	context.IndentedJSON(http.StatusOK, items)
+}
+
 func main() {
 	// Run a server
 	router := gin.Default()
+
+	// Set an endpoint to have a GET request
+	router.GET("/items", getItems)
+
+	// Run a server
 	router.Run("localhost:9000")
 }
