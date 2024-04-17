@@ -1,1 +1,1 @@
-"# This is a REST API written in GoLang!" 
+# This is a REST API written in GoLang!
