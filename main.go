@@ -31,16 +31,6 @@ type xyzPatch struct {
 	SomeBoolean *bool
 }
 
-// Init variables
-var items = []xyz{
-	{Id: "Unique Identifier #1", Title: "Title 1", Description: "Here is some more information about title.", Number: 1, SomeBoolean: true},
-	{Id: "mov_inception", Title: "Inception", Description: "This film is about drugs and draeming.", Number: 56, SomeBoolean: false},
-	{Id: "tv_rickandmorty", Title: "Rick & Morty", Description: "I turned myself into a pickle, Morty! I'm Pickle Riiiiiiick!", Number: 6786789, SomeBoolean: false},
-	{Id: "docu_totaltrust", Title: "Total Trust", Description: "A documentary about surveillance and censorship in China.", Number: 562, SomeBoolean: true},
-	{Id: "soft_vscode", Title: "Visual Studio Code", Description: "IDE.", Number: 3589, SomeBoolean: false},
-	{Id: "web_google", Title: "Google", Description: "A well-known search engine.", Number: 99, SomeBoolean: true},
-}
-
 func getItems(context *gin.Context) {
 	var things []xyz
 
@@ -50,7 +40,7 @@ func getItems(context *gin.Context) {
 		return
 	}
 	defer rows.Close()
-	// Loop through rows, using Scan to assign column data to struct fields.
+
 	for rows.Next() {
 		var thing xyz
 		if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
@@ -59,6 +49,7 @@ func getItems(context *gin.Context) {
 		}
 		things = append(things, thing)
 	}
+
 	if err := rows.Err(); err != nil {
 		context.IndentedJSON(http.StatusInternalServerError, "I haven't a scooby.")
 		return
@@ -67,36 +58,43 @@ func getItems(context *gin.Context) {
 
 }
 
-func addItem(context *gin.Context) {
-	var newItem xyz
-	err := context.BindJSON(&newItem)
-	if err != nil {
-		return
-	}
+// func addItem(context *gin.Context) {
+// 	var newItem xyz
+// 	err := context.BindJSON(&newItem)
+// 	if err != nil {
+// 		return
+// 	}
 
-	items = append(items, newItem)
-	context.IndentedJSON(http.StatusCreated, newItem)
-}
+// 	items = append(items, newItem)
+// 	context.IndentedJSON(http.StatusCreated, newItem)
+// }
 
-func getItem(id string) (*xyz, error) {
-	for i, t := range items {
-		if t.Id == id {
-			return &items[i], nil
+func getItem(id string) (xyz, error) {
+	rows := db.QueryRow("SELECT * FROM things WHERE id = ?;", id)
+	var thing xyz
+
+	fmt.Println(rows)
+	if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
+		if err == sql.ErrNoRows {
+			return thing, errors.New("item Not Found")
 		}
+		fmt.Println(err)
+		return thing, errors.New("error with turning database result into xyz struct")
 	}
-	return nil, errors.New("Todo Not Found")
+	return thing, nil
 }
 
 func getItemById(context *gin.Context) {
 	id := context.Param("id")
+	fmt.Println(id)
 	it, err := getItem(id)
 	if err != nil {
+		fmt.Println(err)
 		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "Item not found."})
 		return
 	}
 
 	context.IndentedJSON(http.StatusOK, it)
-	return
 }
 
 func getField(v *xyz, field string) int {
@@ -135,11 +133,11 @@ func main() {
 	// Set an endpoint to have a GET request
 	router.GET("/items", getItems)
 
-	// POST endpoint
-	router.POST("/addItem", addItem)
-
 	// GET endpoint, takes an argument
 	router.GET("/item/:id", getItemById)
+
+	// POST endpoint
+	// router.POST("/addItem", addItem)
 
 	// Run a server
 	router.Run("localhost:9000")
