@@ -25,6 +25,7 @@ type xyz struct {
 
 // Structure specifically for PATCH requests to ensure I can tell which data needs to be patched
 type xyzPatch struct {
+	Id          *string
 	Title       *string
 	Description *string
 	Number      *int
@@ -58,16 +59,24 @@ func getItems(context *gin.Context) {
 
 }
 
-// func addItem(context *gin.Context) {
-// 	var newItem xyz
-// 	err := context.BindJSON(&newItem)
-// 	if err != nil {
-// 		return
-// 	}
+func addItem(context *gin.Context) {
+	var newItem xyz
+	err := context.BindJSON(&newItem)
+	if err != nil {
+		return
+	}
 
-// 	items = append(items, newItem)
-// 	context.IndentedJSON(http.StatusCreated, newItem)
-// }
+	result, err := db.Exec("INSERT INTO things (id, title, description, number, someboolean) VALUES (?, ?, ?, ?, ?);", newItem.Id, newItem.Title, newItem.Description, newItem.Number, newItem.SomeBoolean)
+	if err != nil {
+		context.IndentedJSON(http.StatusBadRequest, "Item with specified ID probably already exists.")
+	}
+	id, err := result.RowsAffected()
+	if err != nil {
+		return
+	}
+	fmt.Println(id) // Need to do something with it so that the program runs
+	context.IndentedJSON(http.StatusCreated, newItem)
+}
 
 func getItem(id string) (xyz, error) {
 	rows := db.QueryRow("SELECT * FROM things WHERE id = ?;", id)
@@ -137,7 +146,7 @@ func main() {
 	router.GET("/item/:id", getItemById)
 
 	// POST endpoint
-	// router.POST("/addItem", addItem)
+	router.POST("/addItem", addItem)
 
 	// Run a server
 	router.Run("localhost:9000")
