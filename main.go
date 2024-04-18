@@ -30,6 +30,49 @@ type xyzPatch struct {
 	SomeBoolean *bool
 }
 
+func main() {
+	// Capture connection properties
+	cfg := mysql.Config{
+		User:   "root",
+		Passwd: "root",
+		Net:    "tcp",
+		Addr:   "127.0.0.1:3306",
+		DBName: "things",
+	}
+
+	// Get a database handle
+	var err error
+	db, err = sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+
+	fmt.Println("Connected")
+
+	// Run a server
+	router := gin.Default()
+
+	// Set an endpoint to have a GET request
+	router.GET("/items", getItems)
+
+	// GET endpoint, takes an argument
+	router.GET("/item/:id", getItemById)
+
+	// POST endpoint
+	router.POST("/addItem", addItem)
+
+	// PATCH endpoint
+	router.PATCH("/item/:id", updateItem)
+
+	// Run a server
+	router.Run("localhost:9000")
+}
+
 func getItems(context *gin.Context) {
 	var things []xyz
 
@@ -112,47 +155,4 @@ func updateItem(context *gin.Context) {
 
 	context.IndentedJSON(http.StatusOK, it)
 	fmt.Println(it)
-}
-
-func main() {
-	// Capture connection properties
-	cfg := mysql.Config{
-		User:   "root",
-		Passwd: "root",
-		Net:    "tcp",
-		Addr:   "127.0.0.1:3306",
-		DBName: "things",
-	}
-
-	// Get a database handle
-	var err error
-	db, err = sql.Open("mysql", cfg.FormatDSN())
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	pingErr := db.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-
-	fmt.Println("Connected")
-
-	// Run a server
-	router := gin.Default()
-
-	// Set an endpoint to have a GET request
-	router.GET("/items", getItems)
-
-	// GET endpoint, takes an argument
-	router.GET("/item/:id", getItemById)
-
-	// POST endpoint
-	router.POST("/addItem", addItem)
-
-	// PATCH endpoint
-	router.PATCH("/item/:id", updateItem)
-
-	// Run a server
-	router.Run("localhost:9000")
 }
