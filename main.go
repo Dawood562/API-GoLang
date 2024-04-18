@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
@@ -104,12 +103,6 @@ func getItemById(context *gin.Context) {
 	}
 
 	context.IndentedJSON(http.StatusOK, it)
-}
-
-func getField(v *xyz, field string) int {
-	r := reflect.ValueOf(v)
-	f := reflect.Indirect(r).FieldByName(field)
-	return int(f.Int())
 }
 
 func main() {
