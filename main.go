@@ -102,6 +102,18 @@ func getItemById(context *gin.Context) {
 	context.IndentedJSON(http.StatusOK, it)
 }
 
+func updateItem(context *gin.Context) {
+	id := context.Param("id")
+	it, err := getItem(id)
+	if err != nil {
+		context.IndentedJSON(http.StatusNotModified, err)
+		return
+	}
+
+	context.IndentedJSON(http.StatusOK, it)
+	fmt.Println(it)
+}
+
 func main() {
 	// Capture connection properties
 	cfg := mysql.Config{
@@ -137,6 +149,9 @@ func main() {
 
 	// POST endpoint
 	router.POST("/addItem", addItem)
+
+	// PATCH endpoint
+	router.PATCH("/item/:id", updateItem)
 
 	// Run a server
 	router.Run("localhost:9000")
