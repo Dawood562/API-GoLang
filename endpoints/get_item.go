@@ -11,7 +11,7 @@ func GetItemById(context *gin.Context) {
 	id := context.Param("id")
 	it, err := database.GetItem(id)
 	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, err)
+		context.IndentedJSON(http.StatusNotFound, gin.H{"message": err})
 		return
 	}
 

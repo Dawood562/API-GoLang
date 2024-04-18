@@ -14,7 +14,7 @@ func GetItems(context *gin.Context) {
 	things, err := database.GetAllItems()
 
 	if err != nil {
-		context.IndentedJSON(http.StatusInternalServerError, err)
+		context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
 	}
 
