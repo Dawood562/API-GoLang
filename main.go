@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -36,7 +35,7 @@ func getItems(context *gin.Context) {
 
 	rows, err := db.Query("SELECT * FROM things;")
 	if err != nil {
-		context.IndentedJSON(http.StatusInternalServerError, "Error with accessing the database.")
+		context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error with accessing the database."})
 		return
 	}
 	defer rows.Close()
@@ -44,14 +43,14 @@ func getItems(context *gin.Context) {
 	for rows.Next() {
 		var thing xyz
 		if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
-			context.IndentedJSON(http.StatusInternalServerError, "Error with turning database result into xyz struct.")
+			context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error with turning database result into xyz struct."})
 			return
 		}
 		things = append(things, thing)
 	}
 
 	if err := rows.Err(); err != nil {
-		context.IndentedJSON(http.StatusInternalServerError, "I haven't a scooby.")
+		context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "I haven't a scooby."})
 		return
 	}
 	context.IndentedJSON(http.StatusOK, things)
@@ -67,7 +66,7 @@ func addItem(context *gin.Context) {
 
 	result, err := db.Exec("INSERT INTO things (id, title, description, number, someboolean) VALUES (?, ?, ?, ?, ?);", newItem.Id, newItem.Title, newItem.Description, newItem.Number, newItem.SomeBoolean)
 	if err != nil {
-		context.IndentedJSON(http.StatusBadRequest, "Item with specified ID probably already exists.")
+		context.IndentedJSON(http.StatusBadRequest, gin.H{"message": "Item with specified ID probably already exists."})
 	}
 	id, err := result.RowsAffected()
 	if err != nil {
@@ -77,28 +76,26 @@ func addItem(context *gin.Context) {
 	context.IndentedJSON(http.StatusCreated, newItem)
 }
 
-func getItem(id string) (xyz, error) {
+func getItem(id string) (xyz, gin.H) {
 	rows := db.QueryRow("SELECT * FROM things WHERE id = ?;", id)
 	var thing xyz
 
 	fmt.Println(rows)
 	if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
 		if err == sql.ErrNoRows {
-			return thing, errors.New("item Not Found")
+			return thing, gin.H{"message": "Item not found."}
 		}
 		fmt.Println(err)
-		return thing, errors.New("error with turning database result into xyz struct")
+		return thing, gin.H{"message": "Error with turning records into struct."}
 	}
 	return thing, nil
 }
 
 func getItemById(context *gin.Context) {
 	id := context.Param("id")
-	fmt.Println(id)
 	it, err := getItem(id)
 	if err != nil {
-		fmt.Println(err)
-		context.IndentedJSON(http.StatusNotFound, gin.H{"message": "Item not found."})
+		context.IndentedJSON(http.StatusNotFound, err)
 		return
 	}
 
