@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"go-api/endpoints"
+	"go-api/structs"
 	"log"
 	"net/http"
 
@@ -11,24 +13,6 @@ import (
 )
 
 var db *sql.DB
-
-// Determine Data Structure
-type xyz struct {
-	Id          string `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Number      int    `json:"number"`
-	SomeBoolean bool   `json:"someBoolean"`
-}
-
-// Structure specifically for PATCH requests to ensure I can tell which data needs to be patched
-type xyzPatch struct {
-	Id          *string
-	Title       *string
-	Description *string
-	Number      *int
-	SomeBoolean *bool
-}
 
 func main() {
 	// Capture connection properties
@@ -58,7 +42,7 @@ func main() {
 	router := gin.Default()
 
 	// Set an endpoint to have a GET request
-	router.GET("/items", getItems)
+	router.GET("/items", endpoints.GetItems)
 
 	// GET endpoint, takes an argument
 	router.GET("/item/:id", getItemById)
@@ -73,35 +57,8 @@ func main() {
 	router.Run("localhost:9000")
 }
 
-func getItems(context *gin.Context) {
-	var things []xyz
-
-	rows, err := db.Query("SELECT * FROM things;")
-	if err != nil {
-		context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error with accessing the database."})
-		return
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var thing xyz
-		if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
-			context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "Error with turning database result into xyz struct."})
-			return
-		}
-		things = append(things, thing)
-	}
-
-	if err := rows.Err(); err != nil {
-		context.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "I haven't a scooby."})
-		return
-	}
-	context.IndentedJSON(http.StatusOK, things)
-
-}
-
 func addItem(context *gin.Context) {
-	var newItem xyz
+	var newItem structs.Xyz
 	err := context.BindJSON(&newItem)
 	if err != nil {
 		return
@@ -119,9 +76,9 @@ func addItem(context *gin.Context) {
 	context.IndentedJSON(http.StatusCreated, newItem)
 }
 
-func getItem(id string) (xyz, gin.H) {
+func getItem(id string) (structs.Xyz, gin.H) {
 	rows := db.QueryRow("SELECT * FROM things WHERE id = ?;", id)
-	var thing xyz
+	var thing structs.Xyz
 
 	fmt.Println(rows)
 	if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
