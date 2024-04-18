@@ -51,7 +51,7 @@ func main() {
 	router.POST("/addItem", addItem)
 
 	// PATCH endpoint
-	router.PATCH("/item/:id", updateItem)
+	router.PATCH("/item/:id", endpoints.UpdateItem)
 
 	// Run a server
 	router.Run("localhost:9000")
@@ -74,16 +74,4 @@ func addItem(context *gin.Context) {
 	}
 	fmt.Println(id) // Need to do something with it so that the program runs
 	context.IndentedJSON(http.StatusCreated, newItem)
-}
-
-func updateItem(context *gin.Context) {
-	id := context.Param("id")
-	it, err := getItem(id)
-	if err != nil {
-		context.IndentedJSON(http.StatusNotModified, err)
-		return
-	}
-
-	context.IndentedJSON(http.StatusOK, it)
-	fmt.Println(it)
 }
