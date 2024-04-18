@@ -45,7 +45,7 @@ func main() {
 	router.GET("/items", endpoints.GetItems)
 
 	// GET endpoint, takes an argument
-	router.GET("/item/:id", getItemById)
+	router.GET("/item/:id", endpoints.GetItemById)
 
 	// POST endpoint
 	router.POST("/addItem", addItem)
@@ -74,32 +74,6 @@ func addItem(context *gin.Context) {
 	}
 	fmt.Println(id) // Need to do something with it so that the program runs
 	context.IndentedJSON(http.StatusCreated, newItem)
-}
-
-func getItem(id string) (structs.Xyz, gin.H) {
-	rows := db.QueryRow("SELECT * FROM things WHERE id = ?;", id)
-	var thing structs.Xyz
-
-	fmt.Println(rows)
-	if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
-		if err == sql.ErrNoRows {
-			return thing, gin.H{"message": "Item not found."}
-		}
-		fmt.Println(err)
-		return thing, gin.H{"message": "Error with turning records into struct."}
-	}
-	return thing, nil
-}
-
-func getItemById(context *gin.Context) {
-	id := context.Param("id")
-	it, err := getItem(id)
-	if err != nil {
-		context.IndentedJSON(http.StatusNotFound, err)
-		return
-	}
-
-	context.IndentedJSON(http.StatusOK, it)
 }
 
 func updateItem(context *gin.Context) {
