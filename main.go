@@ -1,19 +1,34 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"net/http"
+	"reflect"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 )
 
-/* Determine Data Structure */
+var db *sql.DB
+
+// Determine Data Structure
 type xyz struct {
 	Id          string `json:"id"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	Number      int    `json:"number"`
 	SomeBoolean bool   `json:"someBoolean"`
+}
+
+// Structure specifically for PATCH requests to ensure I can tell which data needs to be patched
+type xyzPatch struct {
+	Title       *string
+	Description *string
+	Number      *int
+	SomeBoolean *bool
 }
 
 // Init variables
@@ -27,13 +42,35 @@ var items = []xyz{
 }
 
 func getItems(context *gin.Context) {
-	context.IndentedJSON(http.StatusOK, items)
+	var things []xyz
+
+	rows, err := db.Query("SELECT * FROM things;")
+	if err != nil {
+		context.IndentedJSON(http.StatusInternalServerError, "Error with accessing the database.")
+		return
+	}
+	defer rows.Close()
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		var thing xyz
+		if err := rows.Scan(&thing.Id, &thing.Title, &thing.Description, &thing.Number, &thing.SomeBoolean); err != nil {
+			context.IndentedJSON(http.StatusInternalServerError, "Error with turning database result into xyz struct.")
+			return
+		}
+		things = append(things, thing)
+	}
+	if err := rows.Err(); err != nil {
+		context.IndentedJSON(http.StatusInternalServerError, "I haven't a scooby.")
+		return
+	}
+	context.IndentedJSON(http.StatusOK, things)
+
 }
 
 func addItem(context *gin.Context) {
 	var newItem xyz
-
-	if err := context.BindJSON(&newItem); err != nil {
+	err := context.BindJSON(&newItem)
+	if err != nil {
 		return
 	}
 
@@ -62,7 +99,36 @@ func getItemById(context *gin.Context) {
 	return
 }
 
+func getField(v *xyz, field string) int {
+	r := reflect.ValueOf(v)
+	f := reflect.Indirect(r).FieldByName(field)
+	return int(f.Int())
+}
+
 func main() {
+	// Capture connection properties
+	cfg := mysql.Config{
+		User:   "root",
+		Passwd: "root",
+		Net:    "tcp",
+		Addr:   "127.0.0.1:3306",
+		DBName: "things",
+	}
+
+	// Get a database handle
+	var err error
+	db, err = sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+
+	fmt.Println("Connected")
+
 	// Run a server
 	router := gin.Default()
 
