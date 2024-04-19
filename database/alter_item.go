@@ -7,7 +7,6 @@ import (
 )
 
 func UpdateItem(id string, givenMap map[string]interface{}) (int64, error) {
-	fmt.Println("-----------------------------------------------------")
 	// Check the non-nil values
 	var toDelete []string
 	for k, v := range givenMap {
