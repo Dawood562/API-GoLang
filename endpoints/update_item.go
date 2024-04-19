@@ -4,6 +4,7 @@ import (
 	"go-api/database"
 	"go-api/structs"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -26,13 +27,14 @@ func UpdateItem(context *gin.Context) {
 	}
 	// Check to make sure that all the values aren't nil
 	var allNil bool = true
-	for k := range newMap {
-		if newMap[k] != nil {
+	for _, v := range newMap {
+		if !reflect.ValueOf(v).IsNil() {
 			allNil = false
 		}
 	}
+
 	if allNil {
-		context.IndentedJSON(http.StatusBadRequest, newMap)
+		context.IndentedJSON(http.StatusBadRequest, newItem)
 		return
 	}
 
